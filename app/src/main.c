@@ -28,3 +28,4 @@ int main(void)
 		
 	}
 }
+// build:west build -p always -b esp32s3_devkitm/esp32s3/procpu app
