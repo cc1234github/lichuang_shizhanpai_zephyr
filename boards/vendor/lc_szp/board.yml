@@ -1,0 +1,6 @@
+board:
+  name: lc_szp
+  full_name: lc_shizhanpai_esp32s3
+  vendor: espressif
+  socs:
+  - name: esp32s3

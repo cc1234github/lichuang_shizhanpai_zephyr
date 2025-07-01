@@ -29,3 +29,6 @@ int main(void)
 	}
 }
 // build:west build -p always -b esp32s3_devkitm/esp32s3/procpu app
+// qemu_cortex_m3
+//D:\zephyr_SDK\zephyr-sdk-0.17.0\arm-zephyr-eabi\bin\arm-zephyr-eabi-gcc --version
+// gd32e103v_eval
