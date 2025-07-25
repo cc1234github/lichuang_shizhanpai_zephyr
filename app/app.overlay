@@ -1,9 +1,12 @@
 
+
+
 / {
+	// 定义 LED 别名
 	aliases {
 		led0 = &user_led;
 	};
-
+	// 定义 LED 节点
 	leds {
 		compatible = "gpio-leds";
 		user_led: led_0 {
