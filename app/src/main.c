@@ -8,7 +8,7 @@
 // 注册一个日志模块
 LOG_MODULE_REGISTER(blinky, LOG_LEVEL_INF);
 
-// 获取led0 的设备节点信息
+// 定义led0的设备节点信息
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
@@ -16,12 +16,13 @@ int main(void)
 {
 	bool led_state = true;
 
+	// 检查led0的设备节点是否存在
 	if (!gpio_is_ready_dt(&led)) {
 		LOG_ERR("LED GPIO device not ready");
 		return 0;
 	}
 
-	//配置引脚初始化状态
+	// 配置引脚为输出模式
 	gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 	while (1) {
 		gpio_pin_toggle_dt(&led);
