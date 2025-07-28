@@ -7,10 +7,10 @@
 
 #include <espressif/esp32s3/esp32s3_mini_n8.dtsi>
 #include <espressif/partitions_0x0_amp.dtsi>
-#include "esp32s3_devkitm-pinctrl.dtsi"
+#include "lc_shizhanpai-pinctrl.dtsi"
 
 / {
-	model = "Espressif ESP32S3-DevkitM APPCPU";
+	model = "lc_shizhanpai APPCPU";
 	compatible = "espressif,esp32s3";
 
 	chosen {

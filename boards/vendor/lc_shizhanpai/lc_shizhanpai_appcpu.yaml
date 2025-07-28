@@ -1,5 +1,5 @@
-identifier: esp32s3_devkitm/esp32s3/appcpu
-name: ESP32-S3 DevKitM APPCPU
+identifier: lc_shizhanpai/esp32s3/appcpu
+name: lc_shizhanpai
 type: mcu
 arch: xtensa
 toolchain:

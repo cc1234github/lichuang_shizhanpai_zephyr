@@ -1,5 +1,5 @@
-identifier: esp32s3_devkitm/esp32s3/procpu
-name: ESP32-S3 DevKitM PROCPU
+identifier: lc_shizhanpai/esp32s3/procpu
+name: lc_shizhanpai
 type: mcu
 arch: xtensa
 toolchain:
