@@ -5,8 +5,8 @@
  */
 /dts-v1/;
 
-#include <espressif/esp32s3/esp32s3_mini_n8.dtsi>
-// #include <espressif/esp32s3/esp32s3_wroom_n16r8.dtsi>
+
+#include <espressif/esp32s3/esp32s3_wroom_n16r8.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/input/esp32-touch-sensor-input.h>
 #include <espressif/partitions_0x0_amp.dtsi>
@@ -85,9 +85,9 @@
 //     pinctrl-0 = <&i2c0_default>;
 //     pinctrl-names = "default";
 
-//     // 触摸屏 FT6x36 (I2C地址 0x38)
-//     ft6x36: touchscreen@38 {
-//         compatible = "focaltech,ft6236";  // Zephyr中用 ft6236 驱动通配支持 ft6x36
+//     // 触摸屏 FT6336 (I2C地址 0x38)
+//     ft6336: touchscreen@38 {
+//         compatible = "focaltech,ft6236";  // Zephyr中用 ft6236 驱动通配支持 ft6336
 //         reg = <0x38>;
 //         label = "FT6X36";
 //         status = "okay";

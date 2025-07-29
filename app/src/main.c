@@ -33,6 +33,6 @@ int main(void)
 		
 	}
 }
-// build:   west build -p always -b esp32s3_devkitm/esp32s3/procpu app
+// west build -p always -b lc_shizhanpai/esp32s3/procpu app
 // west espressif monitor
 // west build -t menuconfig
