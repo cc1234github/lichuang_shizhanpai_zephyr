@@ -6,9 +6,9 @@
 
 cmake_minimum_required(VERSION 3.13.1)
 
-# 指定板子，build 时直接使用west build
+# 指定板子，build/flash 时直接使用west build，不用指定板子了
 set(BOARD lc_shizhanpai)            
-# 设定 BOARD_ROOT 指向工作空间的目录 
+# 设定 BOARD_ROOT 指向工作空间的目录(不然会找不到自己定义的板子)
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 list(APPEND BOARD_ROOT ${PARENT_DIR})
 

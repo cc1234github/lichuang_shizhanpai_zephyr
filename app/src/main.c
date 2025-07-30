@@ -6,33 +6,53 @@
 #include <zephyr/logging/log.h>
 
 // 注册一个日志模块
-LOG_MODULE_REGISTER(blinky, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(Button, LOG_LEVEL_INF);
 
-// 定义led0的设备节点信息
-// #define LED0_NODE DT_ALIAS(led0)
-// static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+/*
+ * Get button configuration from the devicetree sw0 alias. This is mandatory.
+ */
+#define SW0_NODE	DT_ALIAS(sw2)
+#if !DT_NODE_HAS_STATUS_OKAY(SW0_NODE)
+#error "Unsupported board: sw0 devicetree alias is not defined"
+#endif
+static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios,
+							      {0});
+static struct gpio_callback button_cb_data;
+
+
+void button_pressed(const struct device *dev, struct gpio_callback *cb,
+		    uint32_t pins)
+{
+	LOG_INF("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+}
 
 int main(void)
 {
-	// bool led_state = true;
+	int ret;
 
-	// // 检查led0的设备节点是否存在
-	// if (!gpio_is_ready_dt(&led)) {
-	// 	LOG_ERR("LED GPIO device not ready");
-	// 	return 0;
-	// }
+	if (!gpio_is_ready_dt(&button)) {
+		LOG_INF("Error: button device %s is not ready\n",
+		       button.port->name);
+		return 0;
+	}
 
-	// // 配置引脚为输出模式
-	// gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+	ret = gpio_pin_interrupt_configure_dt(&button,
+					      GPIO_INT_EDGE_TO_ACTIVE);
+	if (ret != 0) {
+		LOG_INF("Error %d: failed to configure interrupt on %s pin %d\n",
+			ret, button.port->name, button.pin);
+		return 0;
+	}
+
+	gpio_init_callback(&button_cb_data, button_pressed, BIT(button.pin));
+		gpio_add_callback(button.port, &button_cb_data);
+	LOG_INF("Set up button at %s pin %d\n", button.port->name, button.pin);
+
 	while (1) {
-		// gpio_pin_toggle_dt(&led);
-		//LOG_INF("LED state: %s", led_state ? "ON" : "OFF");
-		LOG_INF("hello world");
-		// led_state = !led_state;
-		k_msleep(500);// Zephyr 的内核延时函数，睡眠 500ms
-		
+		k_msleep(1);
 	}
 }
 // west build -p always -b lc_shizhanpai/esp32s3/procpu app
 // west espressif monitor
 // west build -t menuconfig
+// west flash
