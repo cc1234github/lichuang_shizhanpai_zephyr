@@ -55,4 +55,5 @@ int main(void)
 // west build -p always -b lc_shizhanpai/esp32s3/procpu app
 // west espressif monitor
 // west build -t menuconfig
+// west build -t guiconfig
 // west flash
