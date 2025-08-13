@@ -20,6 +20,7 @@
 		i2c-0 = &i2c0;
 		watchdog0 = &wdt0;
 		sw2 = &button0;
+		led0 = &tft_backlight;
 	};
 
 	chosen {
@@ -52,7 +53,7 @@
 
 		st7789v: st7789v@0 {
 			compatible = "sitronix,st7789v";
-			mipi-max-frequency = <20000000>;
+			mipi-max-frequency = <80000000>;
 			reg = <0>;
 			width = <240>;
 			height = <320>;
@@ -76,6 +77,15 @@
 			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
 		};
 	};
+
+	leds {
+		compatible = "gpio-leds";
+		tft_backlight: led_0 {
+			gpios = <&gpio1 42 GPIO_ACTIVE_LOW>;
+			label = "TFT LCD Backlight";
+		};
+	};
+
 };
 
 // &i2c0 {
