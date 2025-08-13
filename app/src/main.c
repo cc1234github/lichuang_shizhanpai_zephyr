@@ -11,11 +11,11 @@ LOG_MODULE_REGISTER(Button, LOG_LEVEL_INF);
 /*
  * Get button configuration from the devicetree sw0 alias. This is mandatory.
  */
-#define SW0_NODE	DT_ALIAS(sw2)
-#if !DT_NODE_HAS_STATUS_OKAY(SW0_NODE)
+#define SW2_NODE	DT_ALIAS(sw2)
+#if !DT_NODE_HAS_STATUS_OKAY(SW2_NODE)
 #error "Unsupported board: sw0 devicetree alias is not defined"
 #endif
-static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios,
+static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW2_NODE, gpios,
 							      {0});
 static struct gpio_callback button_cb_data;
 
