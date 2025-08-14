@@ -3,10 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#if 1
+ 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-#include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
 #include <lvgl.h>
@@ -21,103 +20,99 @@ LOG_MODULE_REGISTER(app);
  
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
-static const struct device *spi3_dev = DEVICE_DT_GET(DT_NODELABEL(spi3));
-
-#define PCA9557_ADDR        0x19
-#define PCA9557_OUTPUT_PORT 0x01
-#define PCA9557_CONFIG_PORT 0x03
-#define LCD_CS_IO           0   // IO0 控制 CS
-
-const struct device *i2c_dev;
-
-static uint8_t pca_output = 0xFF; // 初始全高
-
-/* 拉低 CS */
-static void lcd_cs_low(void)
+ 
+static uint32_t count;
+ 
+#ifdef CONFIG_GPIO
+static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
+static struct gpio_callback button_callback;
+ 
+static void button_isr_callback(const struct device *port, struct gpio_callback *cb, uint32_t pins)
 {
-    pca_output &= ~(1 << LCD_CS_IO);
-    i2c_reg_write_byte(i2c_dev, PCA9557_ADDR, PCA9557_OUTPUT_PORT, pca_output);
+	ARG_UNUSED(port);
+	ARG_UNUSED(cb);
+	ARG_UNUSED(pins);
+ 
+	count = 0;
 }
-
-/* 拉高 CS */
-static void lcd_cs_high(void)
+#endif /* CONFIG_GPIO */
+ 
+#ifdef CONFIG_LV_Z_ENCODER_INPUT
+static const struct device *lvgl_encoder =
+	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_encoder_input));
+#endif /* CONFIG_LV_Z_ENCODER_INPUT */
+ 
+#ifdef CONFIG_LV_Z_KEYPAD_INPUT
+static const struct device *lvgl_keypad =
+	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
+#endif /* CONFIG_LV_Z_KEYPAD_INPUT */
+ 
+static void lv_btn_click_callback(lv_event_t *e)
 {
-    pca_output |= (1 << LCD_CS_IO);
-    i2c_reg_write_byte(i2c_dev, PCA9557_ADDR, PCA9557_OUTPUT_PORT, pca_output);
+	ARG_UNUSED(e);
+ 
+	count = 0;
 }
-
-/* 初始化 PCA9557 IO */
-static void pca9557_init(void)
-{
-    int ret;
-    i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
-    if (!device_is_ready(i2c_dev)) {
-        printk("I2C not ready\n");
-        return;
-    }
-
-    // 全部输出高
-    pca_output = 0xFF;
-    ret = i2c_reg_write_byte(i2c_dev, PCA9557_ADDR, PCA9557_OUTPUT_PORT, pca_output);
-    if (ret) {
-        printk("Failed to set output: %d\n", ret);
-    }
-
-    // IO0 输出，其它默认输入
-    ret = i2c_reg_write_byte(i2c_dev, PCA9557_ADDR, PCA9557_CONFIG_PORT, 0xFE);
-    if (ret) {
-        printk("Failed to set config: %d\n", ret);
-    }
-}
-
-/* 发送 LCD 命令，自动控制 CS */
-static void lcd_write_cmd(uint8_t cmd)
-{
-    lcd_cs_low();
-    // SPI 写命令（假设你已有 spi_tx 函数）
-    spi_write(spi3_dev, &cmd, 1);
-    lcd_cs_high();
-}
-
+ 
 int main(void)
 {
-    pca9557_init();
+	char count_str[11] = {0};
+	const struct device *display_dev;
+	lv_obj_t *hello_world_label;
+	lv_obj_t *count_label;
 
-    printk("Initializing LCD...\n");
+	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+	if (!device_is_ready(display_dev)) {
+		LOG_ERR("Device not ready, aborting test");
+		return 0;
+	}
 
-    // LCD 初始化序列
-    lcd_write_cmd(0x01); // 软件复位
-    k_sleep(K_MSEC(10));
-    lcd_write_cmd(0x11); // 退出睡眠模式
-    k_sleep(K_MSEC(120));
 
-    printk("LCD initialized\n");
+    if (IS_ENABLED(CONFIG_LV_Z_POINTER_INPUT)) {
+		lv_obj_t *hello_world_button;
 
-    // LVGL 显示示例
-    const struct device *display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-    if (!device_is_ready(display_dev)) {
-        printk("Display not ready\n");
-        return 0;
-    }
+		hello_world_button = lv_button_create(lv_screen_active());
+		lv_obj_align(hello_world_button, LV_ALIGN_CENTER, 0, -15);
+		lv_obj_add_event_cb(hello_world_button, lv_btn_click_callback, LV_EVENT_CLICKED,
+				    NULL);
+		hello_world_label = lv_label_create(hello_world_button);
+	} else {
+		hello_world_label = lv_label_create(lv_screen_active());
+	}
 
-    lv_init();
-    lv_obj_t *label = lv_label_create(lv_scr_act());
-    lv_label_set_text(label, "Hello World!");
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+	lv_label_set_text(hello_world_label, "Hello world!");
+	lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
+
+	count_label = lv_label_create(lv_screen_active());
+	lv_obj_align(count_label, LV_ALIGN_BOTTOM_MID, 0, 0);
+
     display_blanking_off(display_dev);
+    gpio_pin_configure_dt(&led, GPIO_OUTPUT);
+	gpio_pin_set(led.port, led.pin, 1);
+    lv_timer_handler();
+	display_blanking_off(display_dev);
 
-    while (1) {
-        lv_timer_handler();
-        k_sleep(K_MSEC(10));
-    }
+	while (1) {
+		if ((count % 100) == 0U) {
+			sprintf(count_str, "%d", count/100U);
+			lv_label_set_text(count_label, count_str);
+		}
+		lv_timer_handler();
+		++count;
+		k_sleep(K_MSEC(10));
+	}
+ 
+
+	
 }
+
 // west build -p always -b lc_shizhanpai/esp32s3/procpu app
 // west espressif monitor
 // west build -t menuconfig
 // west build -t guiconfig
 // west flash
+// west build -t initlevels
 
-#endif 
+
 
 

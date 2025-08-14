@@ -53,7 +53,7 @@
 
 		st7789v: st7789v@0 {
 			compatible = "sitronix,st7789v";
-			mipi-max-frequency = <80000000>;
+			mipi-max-frequency = <40000000>;
 			reg = <0>;
 			width = <240>;
 			height = <320>;
@@ -76,12 +76,13 @@
 			rgb-param = [CD 08 14];
 			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
 		};
+		
 	};
 
 	leds {
 		compatible = "gpio-leds";
 		tft_backlight: led_0 {
-			gpios = <&gpio1 42 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 42 GPIO_ACTIVE_HIGH>;
 			label = "TFT LCD Backlight";
 		};
 	};
@@ -170,6 +171,7 @@
 	status = "okay";
 	pinctrl-0 = <&spim3_default>;
 	pinctrl-names = "default";
+	cs-gpios = <&pca9557 0 GPIO_ACTIVE_LOW>;
 };
 
 &gpio0 {
