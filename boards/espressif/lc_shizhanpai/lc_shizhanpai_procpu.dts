@@ -17,7 +17,7 @@
 	compatible = "espressif,esp32s3";
 
 	aliases {
-		i2c-0 = &i2c0;
+		i2c0 = &i2c0;
 		watchdog0 = &wdt0;
 		sw2 = &button0;
 		led0 = &tft_backlight;
@@ -88,52 +88,55 @@
 
 };
 
-// &i2c0 {
-//     status = "okay";
-//     clock-frequency = <I2C_BITRATE_STANDARD>;
-//     pinctrl-0 = <&i2c0_default>;
-//     pinctrl-names = "default";
 
-//     // 触摸屏 FT6336 (I2C地址 0x38)
-//     ft6336: touchscreen@38 {
-//         compatible = "focaltech,ft6236";  // Zephyr中用 ft6236 驱动通配支持 ft6336
-//         reg = <0x38>;
-//         label = "FT6X36";
-//         status = "okay";
-//     };
+&i2c0 {
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_STANDARD>;
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-names = "default";
 
-//     //QMI8658A IMU (I2C地址 0x6A)
-//     qmi8658: qmi8658@6a {
-//         compatible = "qst,qmi8658";  // 你需要自定义驱动或适配
-//         reg = <0x6a>;
-//         label = "QMI8658A";
-//         status = "okay";
-//     };
+	// PCA9557 IO 扩展器 (I2C地址 0x19)
+    pca9557: pca9557@19 {
+        compatible = "nxp,pca9554";
+		label = "PCA9557";
+		status = "okay";
+		reg = <0x19>;  // 7-bit I2C 地址
 
-//     // PCA9557 IO 扩展器 (I2C地址 0x19)
-//     pca9557: gpioexp@19 {
-//         compatible = "nxp,pca9557";
-//         reg = <0x19>;
-//         gpio-controller;
-//         #gpio-cells = <2>;
-//         ngpios = <8>;
-//         label = "PCA9557";
-//         status = "okay";
-//     };
+		gpio-controller;	
+		#gpio-cells = <2>; // 定义 GPIO 单元格数为 2，分别为引脚编号和活动状态
+		ngpios = <8>; 
+    };
 
-// 	gc0308: gc0308@21 {
-//         compatible = "galaxycore,gc0308";
-//         reg = <0x21>;  // GC0308 的默认 I2C 地址是 0x21（7-bit）
 
-//         status = "okay";
+    // // 触摸屏 FT6336 (I2C地址 0x38)
+    // ft6336: touchscreen@38 {
+    //     compatible = "focaltech,ft6236";  // Zephyr中用 ft6236 驱动通配支持 ft6336
+    //     reg = <0x38>;
+    //     label = "FT6X36";
+    //     status = "okay";
+    // };
 
-//         port {
-//             gc0308_ep_out: endpoint {
-//                 remote-endpoint = <&dvp_ep_in>;
-//             };
-//         };
-//     };
-// };
+    // //QMI8658A IMU (I2C地址 0x6A)
+    // qmi8658: qmi8658@6a {
+    //     compatible = "qst,qmi8658";  // 你需要自定义驱动或适配
+    //     reg = <0x6a>;
+    //     label = "QMI8658A";
+    //     status = "okay";
+    // };
+
+	// gc0308: gc0308@21 {
+    //     compatible = "galaxycore,gc0308";
+    //     reg = <0x21>;  // GC0308 的默认 I2C 地址是 0x21（7-bit）
+
+    //     status = "okay";
+
+    //     port {
+    //         gc0308_ep_out: endpoint {
+    //             remote-endpoint = <&dvp_ep_in>;
+    //         };
+    //     };
+    // };
+};
 
 // &lcd_cam {
 //     status = "okay";
