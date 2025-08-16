@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
- 
+
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/display.h>
@@ -13,50 +13,64 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 #include <lvgl_input_device.h>
- 
+
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app);
- 
-#define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
- 
+
 static uint32_t count;
- 
+static const struct gpio_dt_spec backlight = GPIO_DT_SPEC_GET(DT_ALIAS(backlight), gpios);
+
 #ifdef CONFIG_GPIO
 static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
 static struct gpio_callback button_callback;
- 
 static void button_isr_callback(const struct device *port, struct gpio_callback *cb, uint32_t pins)
 {
 	ARG_UNUSED(port);
 	ARG_UNUSED(cb);
 	ARG_UNUSED(pins);
- 
 	count = 0;
 }
 #endif /* CONFIG_GPIO */
- 
+
 #ifdef CONFIG_LV_Z_ENCODER_INPUT
 static const struct device *lvgl_encoder =
 	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_encoder_input));
 #endif /* CONFIG_LV_Z_ENCODER_INPUT */
- 
+
 #ifdef CONFIG_LV_Z_KEYPAD_INPUT
 static const struct device *lvgl_keypad =
 	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
 #endif /* CONFIG_LV_Z_KEYPAD_INPUT */
- 
+
 static void lv_btn_click_callback(lv_event_t *e)
 {
 	ARG_UNUSED(e);
- 
 	count = 0;
 }
- 
+
+static lv_obj_t *fps_label;
+static uint32_t frame_cnt = 0;
+static uint32_t last_tick = 0;
+
+static void fps_timer_cb(lv_timer_t * timer)
+{
+    uint32_t now = lv_tick_get();
+    uint32_t diff = now - last_tick;
+
+    if (diff >= 1000) {   // 每秒统计一次
+        char buf[32];
+        sprintf(buf, "FPS: %d", frame_cnt * 1000 / diff);
+        lv_label_set_text(fps_label, buf);
+
+        frame_cnt = 0;
+        last_tick = now;
+    }
+}
+
 int main(void)
 {
-	char count_str[11] = {0};
+	static char count_str[11] = {0};
 	const struct device *display_dev;
 	lv_obj_t *hello_world_label;
 	lv_obj_t *count_label;
@@ -67,30 +81,28 @@ int main(void)
 		return 0;
 	}
 
-
-    if (IS_ENABLED(CONFIG_LV_Z_POINTER_INPUT)) {
-		lv_obj_t *hello_world_button;
-
-		hello_world_button = lv_button_create(lv_screen_active());
-		lv_obj_align(hello_world_button, LV_ALIGN_CENTER, 0, -15);
-		lv_obj_add_event_cb(hello_world_button, lv_btn_click_callback, LV_EVENT_CLICKED,
-				    NULL);
-		hello_world_label = lv_label_create(hello_world_button);
-	} else {
-		hello_world_label = lv_label_create(lv_screen_active());
-	}
-
+	lv_obj_t *hello_world_button;
+	hello_world_button = lv_button_create(lv_screen_active());
+	lv_obj_align(hello_world_button, LV_ALIGN_CENTER, 0, -15);
+	lv_obj_add_event_cb(hello_world_button, lv_btn_click_callback, LV_EVENT_CLICKED,
+				NULL);
+	hello_world_label = lv_label_create(hello_world_button);
 	lv_label_set_text(hello_world_label, "Hello world!");
 	lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
 
 	count_label = lv_label_create(lv_screen_active());
 	lv_obj_align(count_label, LV_ALIGN_BOTTOM_MID, 0, 0);
 
-    display_blanking_off(display_dev);
-    gpio_pin_configure_dt(&led, GPIO_OUTPUT);
-	gpio_pin_set(led.port, led.pin, 1);
-    lv_timer_handler();
+    gpio_pin_configure_dt(&backlight, GPIO_OUTPUT);
+	gpio_pin_set(backlight.port, backlight.pin, 1);
+
 	display_blanking_off(display_dev);
+    lv_timer_handler();
+
+	fps_label = lv_label_create(lv_scr_act());
+    lv_obj_align(fps_label, LV_ALIGN_TOP_RIGHT, -10, 10);
+
+    lv_timer_create(fps_timer_cb, 200, NULL);
 
 	while (1) {
 		if ((count % 100) == 0U) {
@@ -99,11 +111,9 @@ int main(void)
 		}
 		lv_timer_handler();
 		++count;
+		frame_cnt++;
 		k_sleep(K_MSEC(10));
 	}
- 
-
-	
 }
 
 // west build -p always -b lc_shizhanpai/esp32s3/procpu app

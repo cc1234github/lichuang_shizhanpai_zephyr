@@ -20,7 +20,7 @@
 		i2c0 = &i2c0;
 		watchdog0 = &wdt0;
 		sw2 = &button0;
-		led0 = &tft_backlight;
+		backlight = &tft_backlight;
 	};
 
 	chosen {
@@ -31,6 +31,7 @@
 		zephyr,code-partition = &slot0_partition;
 		zephyr,bt-hci = &esp32_bt_hci;
 		zephyr,display = &st7789v;
+		zephyr,touch = &ft6336_touch;
 		// zephyr,camera = &lcd_cam;
 	};
 
@@ -53,7 +54,7 @@
 
 		st7789v: st7789v@0 {
 			compatible = "sitronix,st7789v";
-			mipi-max-frequency = <40000000>;
+			mipi-max-frequency = <80000000>;
 			reg = <0>;
 			width = <240>;
 			height = <320>;
@@ -76,15 +77,19 @@
 			rgb-param = [CD 08 14];
 			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
 		};
-		
 	};
 
 	leds {
 		compatible = "gpio-leds";
 		tft_backlight: led_0 {
-			gpios = <&gpio1 42 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio1 42 GPIO_ACTIVE_LOW>;
 			label = "TFT LCD Backlight";
 		};
+	};
+
+	lvgl_pointer {
+		input = <&ft6336_touch>;
+		compatible = "zephyr,lvgl-pointer-input";
 	};
 
 };
@@ -96,63 +101,24 @@
     pinctrl-0 = <&i2c0_default>;
     pinctrl-names = "default";
 
-	// PCA9557 IO 扩展器 (I2C地址 0x19)
-    pca9557: pca9557@19 {
+    pca9557_io_expander: pca9554@19 {
         compatible = "nxp,pca9554";
 		label = "PCA9557";
 		status = "okay";
-		reg = <0x19>;  // 7-bit I2C 地址
+		reg = <0x19>;  
 
 		gpio-controller;	
-		#gpio-cells = <2>; // 定义 GPIO 单元格数为 2，分别为引脚编号和活动状态
+		#gpio-cells = <2>; 
 		ngpios = <8>; 
     };
 
-
-    // // 触摸屏 FT6336 (I2C地址 0x38)
-    // ft6336: touchscreen@38 {
-    //     compatible = "focaltech,ft6236";  // Zephyr中用 ft6236 驱动通配支持 ft6336
-    //     reg = <0x38>;
-    //     label = "FT6X36";
-    //     status = "okay";
-    // };
-
-    // //QMI8658A IMU (I2C地址 0x6A)
-    // qmi8658: qmi8658@6a {
-    //     compatible = "qst,qmi8658";  // 你需要自定义驱动或适配
-    //     reg = <0x6a>;
-    //     label = "QMI8658A";
-    //     status = "okay";
-    // };
-
-	// gc0308: gc0308@21 {
-    //     compatible = "galaxycore,gc0308";
-    //     reg = <0x21>;  // GC0308 的默认 I2C 地址是 0x21（7-bit）
-
-    //     status = "okay";
-
-    //     port {
-    //         gc0308_ep_out: endpoint {
-    //             remote-endpoint = <&dvp_ep_in>;
-    //         };
-    //     };
-    // };
+    ft6336_touch: ft5336@38 {
+		status = "okay";
+		compatible = "focaltech,ft5336";
+		reg = <0x38>;
+	};
 };
 
-// &lcd_cam {
-//     status = "okay";
-//     cam-clk = <10000000>;  // DVP 时钟设置为 10 MHz，GC0308 支持 6~24MHz
-//     pinctrl-0 = <&lcd_cam_default>;
-//     pinctrl-names = "default";
-//     source = <&gc0308>;  // 注意替换为 gc0308
-//     dmas = <&dma 2>;
-//     dma-names = "rx";
-//     port {
-//         dvp_ep_in: endpoint {
-//             remote-endpoint = <&gc0308_ep_out>;
-//         };
-//     };
-// };
 
 &dma {
 	status = "okay";
@@ -166,12 +132,12 @@
 };
 
 &spi3 {
+	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
 	pinctrl-0 = <&spim3_default>;
 	pinctrl-names = "default";
-	cs-gpios = <&pca9557 0 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&pca9557_io_expander 0 GPIO_ACTIVE_LOW>;
 };
 
 &gpio0 {
