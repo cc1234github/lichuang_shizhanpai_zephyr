@@ -49,24 +49,6 @@ static void lv_btn_click_callback(lv_event_t *e)
 	count = 0;
 }
 
-static lv_obj_t *fps_label;
-static uint32_t frame_cnt = 0;
-static uint32_t last_tick = 0;
-
-static void fps_timer_cb(lv_timer_t * timer)
-{
-    uint32_t now = lv_tick_get();
-    uint32_t diff = now - last_tick;
-
-    if (diff >= 1000) {   // 每秒统计一次
-        char buf[32];
-        sprintf(buf, "FPS: %d", frame_cnt * 1000 / diff);
-        lv_label_set_text(fps_label, buf);
-
-        frame_cnt = 0;
-        last_tick = now;
-    }
-}
 
 int main(void)
 {
@@ -99,11 +81,6 @@ int main(void)
 	display_blanking_off(display_dev);
     lv_timer_handler();
 
-	fps_label = lv_label_create(lv_scr_act());
-    lv_obj_align(fps_label, LV_ALIGN_TOP_RIGHT, -10, 10);
-
-    lv_timer_create(fps_timer_cb, 200, NULL);
-
 	while (1) {
 		if ((count % 100) == 0U) {
 			sprintf(count_str, "%d", count/100U);
@@ -111,7 +88,6 @@ int main(void)
 		}
 		lv_timer_handler();
 		++count;
-		frame_cnt++;
 		k_sleep(K_MSEC(10));
 	}
 }
