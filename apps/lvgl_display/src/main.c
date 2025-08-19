@@ -98,7 +98,3 @@ int main(void)
 // west build -t guiconfig
 // west flash
 // west build -t initlevels
-
-
-
-
