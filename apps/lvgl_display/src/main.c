@@ -92,7 +92,7 @@ int main(void)
 	}
 }
 
-// west build -p always -b lc_shizhanpai/esp32s3/procpu app
+// west build -p always -b lc_shizhanpai/esp32s3/procpu apps/lvgl_display
 // west espressif monitor
 // west build -t menuconfig
 // west build -t guiconfig

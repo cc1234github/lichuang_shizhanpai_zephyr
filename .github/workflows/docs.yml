@@ -3,7 +3,7 @@
 
 name: Documentation
 
-on: [push, pull_request]
+# on: [push, pull_request]
 
 env:
   DOXYGEN_VERSION: 1.9.6
