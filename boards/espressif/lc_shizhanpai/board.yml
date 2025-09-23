@@ -1,6 +1,0 @@
-board:
-  name: lc_shizhanpai     
-  full_name: lichuang_shizhanpai_esp32s3
-  vendor: espressif
-  socs:
-  - name: esp32s3
