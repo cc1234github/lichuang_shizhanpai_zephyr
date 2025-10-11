@@ -9,14 +9,17 @@
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
 #include <lvgl.h>
-#include <stdio.h>
-#include <string.h>
 #include <zephyr/kernel.h>
 #include <lvgl_input_device.h>
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app);
+
+#if !IS_ENABLED(CONFIG_CPU_LOAD)
+#warning "CONFIG_CPU_LOAD is not enabled"
+#endif
+
 
 static uint32_t count;
 static const struct gpio_dt_spec backlight = GPIO_DT_SPEC_GET(DT_ALIAS(backlight), gpios);
@@ -92,7 +95,7 @@ int main(void)
 	}
 }
 
-// west build -p always -b lc_shizhanpai/esp32s3/procpu apps/lvgl_display
+// west build -p always -b lc_shizhanpai/esp32s3/procpu apps/wifi_scan
 // west espressif monitor
 // west build -t menuconfig
 // west build -t guiconfig
