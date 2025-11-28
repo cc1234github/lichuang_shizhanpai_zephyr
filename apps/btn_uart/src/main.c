@@ -53,3 +53,4 @@ int main(void)
     }
 }
 // west build -p always -b lc_shizhanpai/esp32s3/procpu apps/btn_uart
+// west build -p always -b lc_shizhanpai/esp32s3/procpu   samples/hello_world   -DBOARD_ROOT=/home/c/workspace/lichuang_shizhanpai_zephyr
