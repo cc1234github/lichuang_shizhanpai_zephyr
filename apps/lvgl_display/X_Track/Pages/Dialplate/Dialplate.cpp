@@ -8,7 +8,7 @@ LOG_MODULE_REGISTER(dialplate,CONFIG_LOG_DEFAULT_LEVEL);
 Dialplate::Dialplate()
     : timer(nullptr)
     , recState(RECORD_STATE_READY)
-    , lastFocus(nullptr)
+    // , lastFocus(nullptr)
     , is_view_active(false)
 {
 }
@@ -33,9 +33,16 @@ void Dialplate::onViewLoad()
     Model.Init();// 初始化模型
     View.Create(_root);// 创建视图
 
+    LOG_INF("=== Attaching events ===");
+    LOG_INF("btnMap: %p", View.ui.btnCont.btnMap);
+    LOG_INF("btnRec: %p", View.ui.btnCont.btnRec);
+    LOG_INF("btnMenu: %p", View.ui.btnCont.btnMenu);
+
     AttachEvent(View.ui.btnCont.btnMap);// 绑定按钮事件
     AttachEvent(View.ui.btnCont.btnRec);// 绑定按钮事件
     AttachEvent(View.ui.btnCont.btnMenu);// 绑定按钮事件
+
+    LOG_INF("Events attached successfully");
 }
 
 /**************************************************************************
@@ -51,28 +58,28 @@ void Dialplate::onViewDidLoad()
 **************************************************************************/
 void Dialplate::onViewWillAppear()
 {
-    // 等待当前输入设备释放
-    lv_indev_wait_release(lv_indev_get_act());
+    // // 等待当前输入设备释放
+    // lv_indev_wait_release(lv_indev_get_act());
 
-    // 获取默认组
-    lv_group_t* group = lv_group_get_default();
-    LV_ASSERT_NULL(group);
+    // // 获取默认组
+    // lv_group_t* group = lv_group_get_default();
+    // LV_ASSERT_NULL(group);
 
-    // 禁用组的环绕
-    lv_group_set_wrap(group, false);
+    // // 禁用组的环绕
+    // lv_group_set_wrap(group, false);
 
-    // 将按钮添加到组中
-    lv_group_add_obj(group, View.ui.btnCont.btnMap);
-    lv_group_add_obj(group, View.ui.btnCont.btnRec);
-    lv_group_add_obj(group, View.ui.btnCont.btnMenu);
+    // // 将按钮添加到组中
+    // lv_group_add_obj(group, View.ui.btnCont.btnMap);
+    // lv_group_add_obj(group, View.ui.btnCont.btnRec);
+    // lv_group_add_obj(group, View.ui.btnCont.btnMenu);
 
-    // 恢复上次的焦点，或默认聚焦到开始按钮
-    if (lastFocus){
-        lv_group_focus_obj(lastFocus);
-    }
-    else{
-        lv_group_focus_obj(View.ui.btnCont.btnRec);
-    }
+    // // 恢复上次的焦点，或默认聚焦到开始按钮
+    // if (lastFocus){
+    //     lv_group_focus_obj(lastFocus);
+    // }
+    // else{
+    //     lv_group_focus_obj(View.ui.btnCont.btnRec);
+    // }
 
     // 设置状态栏样式为透明
     Model.SetStatusBarStyle(DataProc::STATUS_BAR_STYLE_TRANSP);
@@ -100,10 +107,10 @@ void Dialplate::onViewDidAppear()
 **************************************************************************/
 void Dialplate::onViewWillDisappear()
 {
-    lv_group_t* group = lv_group_get_default();
-    LV_ASSERT_NULL(group);
-    lastFocus = lv_group_get_focused(group);// 保存当前焦点
-    lv_group_remove_all_objs(group);        // 从输入组移除所有对象
+    // lv_group_t* group = lv_group_get_default();
+    // LV_ASSERT_NULL(group);
+    // lastFocus = lv_group_get_focused(group);// 保存当前焦点
+    // lv_group_remove_all_objs(group);        // 从输入组移除所有对象
     if (timer != nullptr)                   // 删除定时器
     { 
         lv_timer_del(timer);
@@ -300,6 +307,25 @@ void Dialplate::onEvent(lv_event_t* event)
     lv_obj_t* obj = (lv_obj_t*)lv_event_get_current_target(event);
     lv_event_code_t code = lv_event_get_code(event);
 
+    
+    // ? 只处理需要的事件，其他事件直接忽略
+    if (code != LV_EVENT_SHORT_CLICKED && code != LV_EVENT_LONG_PRESSED) {
+        return;  // 不处理也不打印其他事件
+    }
+
+    // 现在只有 SHORT_CLICKED 和 LONG_PRESSED 会执行到这里
+    LOG_INF("=== Event received: code=%d, obj=%p ===", code, obj);
+
+    const char* btn_name = "UNKNOWN";
+    if (obj == instance->View.ui.btnCont.btnMap) {
+        btn_name = "MAP";
+    } else if (obj == instance->View.ui.btnCont.btnRec) {
+        btn_name = "REC";
+    } else if (obj == instance->View.ui.btnCont.btnMenu) {
+        btn_name = "MENU";
+    }
+    
+    LOG_INF("Button: %s, Event: %d", btn_name, code);
 
     // 处理短按事件
     if (code == LV_EVENT_SHORT_CLICKED)

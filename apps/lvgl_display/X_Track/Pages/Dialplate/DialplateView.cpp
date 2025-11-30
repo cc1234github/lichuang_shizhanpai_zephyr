@@ -1,9 +1,9 @@
 #include "DialplateView.h"
 #include <stdarg.h>
 #include <stdio.h>
-
+#include <zephyr/logging/log.h>
 #define ARRAY_SIZE(arr) (int(sizeof(arr) / sizeof(arr[0])))
-
+LOG_MODULE_REGISTER(dialplate_view,CONFIG_LOG_DEFAULT_LEVEL);
 using namespace Page;
 
 /**************************************************************************
@@ -208,9 +208,46 @@ void DialplateView::BtnCont_Create(lv_obj_t *par)
     ui.btnCont.btnMenu = Btn_Create(cont, ResourcePool::GetImage("menu"), 80);
 }
 
-/**************************************************************************
-    \brief   Btn_Create() - 创建底部按钮（通用）
-**************************************************************************/
+// /**************************************************************************
+//     \brief   Btn_Create() - 创建底部按钮（通用）
+// **************************************************************************/
+// lv_obj_t *DialplateView::Btn_Create(lv_obj_t *par, const void *img_src, lv_coord_t x_ofs)
+// {
+//     lv_obj_t *obj = lv_obj_create(par);
+//     lv_obj_remove_style_all(obj);
+//     lv_obj_set_size(obj, 40, 31);
+//     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+
+//     lv_obj_align(obj, LV_ALIGN_CENTER, x_ofs, 0);
+//     lv_obj_set_style_bg_img_src(obj, img_src, 0);
+
+//     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
+//     lv_obj_set_style_width(obj, 45, LV_STATE_PRESSED);
+//     lv_obj_set_style_height(obj, 25, LV_STATE_PRESSED);
+//     lv_obj_set_style_bg_color(obj, lv_color_hex(0x666666), 0);
+//     lv_obj_set_style_bg_color(obj, lv_color_hex(0xbbbbbb), LV_STATE_PRESSED);
+//     lv_obj_set_style_bg_color(obj, lv_color_hex(0xff931e), LV_STATE_FOCUSED);
+//     lv_obj_set_style_radius(obj, 9, 0);
+
+//     static lv_style_transition_dsc_t tran;
+//     static const lv_style_prop_t prop[] = {LV_STYLE_WIDTH, LV_STYLE_HEIGHT, LV_STYLE_PROP_INV};
+//     lv_style_transition_dsc_init(
+//         &tran,
+//         prop,
+//         lv_anim_path_ease_out,
+//         200,
+//         0,
+//         nullptr
+// 		);
+//     // 应用过渡效果到按下和聚焦状态
+//     lv_obj_set_style_transition(obj, &tran, LV_STATE_PRESSED);
+//     lv_obj_set_style_transition(obj, &tran, LV_STATE_FOCUSED);
+
+//     lv_obj_update_layout(obj);
+
+//     return obj;
+// }
+
 lv_obj_t *DialplateView::Btn_Create(lv_obj_t *par, const void *img_src, lv_coord_t x_ofs)
 {
     lv_obj_t *obj = lv_obj_create(par);
@@ -222,37 +259,54 @@ lv_obj_t *DialplateView::Btn_Create(lv_obj_t *par, const void *img_src, lv_coord
     lv_obj_set_style_bg_img_src(obj, img_src, 0);
 
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(obj, lv_color_hex(0x666666), 0);
+    lv_obj_set_style_radius(obj, 9, 0);
+    
+    // ? 添加边框，方便看到按钮区域
+    lv_obj_set_style_border_width(obj, 2, 0);
+    lv_obj_set_style_border_color(obj, lv_color_hex(0xFF0000), 0);  // 红色边框
+    lv_obj_set_style_border_opa(obj, LV_OPA_COVER, 0);
+    
+    // 按下状态
     lv_obj_set_style_width(obj, 45, LV_STATE_PRESSED);
     lv_obj_set_style_height(obj, 25, LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0x666666), 0);
     lv_obj_set_style_bg_color(obj, lv_color_hex(0xbbbbbb), LV_STATE_PRESSED);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0xff931e), LV_STATE_FOCUSED);
-    lv_obj_set_style_radius(obj, 9, 0);
+    lv_obj_set_style_border_color(obj, lv_color_hex(0x00FF00), LV_STATE_PRESSED);  // 按下时绿色
 
+    // 过渡动画
     static lv_style_transition_dsc_t tran;
-    static const lv_style_prop_t prop[] = {LV_STYLE_WIDTH, LV_STYLE_HEIGHT, LV_STYLE_PROP_INV};
-    lv_style_transition_dsc_init(
-        &tran,
-        prop,
-        lv_anim_path_ease_out,
-        200,
-        0,
-        nullptr
-		);
-    // 应用过渡效果到按下和聚焦状态
+    static const lv_style_prop_t prop[] = {
+        LV_STYLE_WIDTH, 
+        LV_STYLE_HEIGHT, 
+        LV_STYLE_BG_COLOR,
+        LV_STYLE_PROP_INV
+    };
+    lv_style_transition_dsc_init(&tran, prop, lv_anim_path_ease_out, 200, 0, nullptr);
     lv_obj_set_style_transition(obj, &tran, LV_STATE_PRESSED);
-    lv_obj_set_style_transition(obj, &tran, LV_STATE_FOCUSED);
 
+    // ? 更新布局并获取实际坐标
     lv_obj_update_layout(obj);
+    
+    lv_area_t area;
+    lv_obj_get_coords(obj, &area);
+    
+    // ? 打印详细的按钮信息
+    LOG_INF("Button created:");
+    LOG_INF("  - Address: %p", obj);
+    LOG_INF("  - Position: x=%d, y=%d", lv_obj_get_x(obj), lv_obj_get_y(obj));
+    LOG_INF("  - Size: %dx%d", lv_obj_get_width(obj), lv_obj_get_height(obj));
+    LOG_INF("  - Absolute coords: x1=%d, y1=%d, x2=%d, y2=%d", 
+            area.x1, area.y1, area.x2, area.y2);
+    LOG_INF("  - Clickable: %s", 
+            lv_obj_has_flag(obj, LV_OBJ_FLAG_CLICKABLE) ? "YES" : "NO");
 
     return obj;
 }
-
 /**************************************************************************
     \brief   AppearAnimStart() - 启动出现动画
 **************************************************************************/
 void DialplateView::AppearAnimStart(bool reverse)
 {
-    lv_anim_timeline_set_reverse(ui.anim_timeline, reverse);
-    lv_anim_timeline_start(ui.anim_timeline);
+    // lv_anim_timeline_set_reverse(ui.anim_timeline, reverse);
+    // lv_anim_timeline_start(ui.anim_timeline);
 }

@@ -46,7 +46,7 @@ private:
     DialplateModel Model;
     lv_timer_t* timer;
     RecordState_t recState;
-    lv_obj_t* lastFocus;
+    // lv_obj_t* lastFocus;
     bool is_view_active;
 };
 

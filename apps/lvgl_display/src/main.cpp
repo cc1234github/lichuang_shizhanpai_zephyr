@@ -54,19 +54,105 @@ static lv_group_t *group;
 /**************************************************************************
     \brief   
 **************************************************************************/
+
 void lv_port_indev_init(void)
 {
-    // 创建默认组
-    group = lv_group_create();
-    lv_group_set_default(group);
 
-    // 注册编码器输入设备 (LVGL 9.x 新 API)
-    indev_encoder = lv_indev_create();
-    lv_indev_set_type(indev_encoder, LV_INDEV_TYPE_ENCODER);
-    lv_indev_set_read_cb(indev_encoder, Encoder_Read);
-    lv_indev_set_group(indev_encoder, group);
+    // group = lv_group_create();
+    // lv_group_set_default(group);
 
-    LOG_INF("LVGL encoder input device registered");
+    // //注册编码器输入设备 (LVGL 9.x 新 API)
+    // indev_encoder = lv_indev_create();
+    // lv_indev_set_type(indev_encoder, LV_INDEV_TYPE_ENCODER);
+    // lv_indev_set_read_cb(indev_encoder, Encoder_Read);
+    // lv_indev_set_group(indev_encoder, group);
+    
+    LOG_INF("=== LVGL Input Init ===");
+    
+    const struct device *touch_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_touch));
+    if (!device_is_ready(touch_dev)) {
+        LOG_ERR("Touch device NOT ready");
+    } else {
+        LOG_INF("Touch device IS ready: %s", touch_dev->name);
+    }
+    
+    // 触摸屏通过 lvgl_pointer 自动初始化
+    lv_indev_t *indev = lv_indev_get_next(NULL);
+    int count = 0;
+    while (indev) {
+        LOG_INF("  Device %d: type=%d", count++, lv_indev_get_type(indev));
+        indev = lv_indev_get_next(indev);
+    }
+    LOG_INF("Found %d LVGL input device(s)", count);
+}
+
+void create_touch_test_screen(void)
+{
+    LOG_INF("Creating simple touch test for 320x240...");
+    
+    lv_obj_t *scr = lv_scr_act();
+    lv_obj_set_style_bg_color(scr, lv_color_hex(0x000000), 0);
+    
+    // 坐标显示（顶部）
+    lv_obj_t *coord_label = lv_label_create(scr);
+    lv_label_set_text(coord_label, "X: ---, Y: ---");
+    lv_obj_set_style_text_color(coord_label, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_style_text_font(coord_label, &lv_font_montserrat_14, 0);
+    lv_obj_align(coord_label, LV_ALIGN_TOP_MID, 0, 10);
+    
+    // 中央按钮
+    lv_obj_t *btn = lv_btn_create(scr);
+    lv_obj_set_size(btn, 200, 100);
+    lv_obj_center(btn);
+    lv_obj_set_style_bg_color(btn, lv_color_hex(0x0080FF), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(btn, lv_color_hex(0xFF0000), LV_STATE_PRESSED);
+    
+    lv_obj_t *label = lv_label_create(btn);
+    lv_label_set_text(label, "TOUCH");
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_14, 0);
+    lv_obj_center(label);
+    
+    // 状态显示（底部）
+    lv_obj_t *status = lv_label_create(scr);
+    lv_label_set_text(status, "Waiting...");
+    lv_obj_set_style_text_color(status, lv_color_hex(0xFFFF00), 0);
+    lv_obj_align(status, LV_ALIGN_BOTTOM_MID, 0, -10);
+    
+    // 按钮事件
+    lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        lv_obj_t *status = (lv_obj_t*)lv_event_get_user_data(e);
+        lv_event_code_t code = lv_event_get_code(e);
+        
+        if (code == LV_EVENT_PRESSED) {
+            lv_label_set_text(status, "PRESSED!");
+            LOG_INF(">>> BUTTON PRESSED <<<");
+        } else if (code == LV_EVENT_RELEASED) {
+            lv_label_set_text(status, "RELEASED");
+        } else if (code == LV_EVENT_CLICKED) {
+            lv_label_set_text(status, "CLICKED!");
+            LOG_INF(">>> BUTTON CLICKED <<<");
+        }
+    }, LV_EVENT_ALL, status);
+    
+    // 全屏坐标监控
+    lv_obj_add_event_cb(scr, [](lv_event_t *e) {
+        lv_obj_t *coord = (lv_obj_t*)lv_event_get_user_data(e);
+        lv_event_code_t code = lv_event_get_code(e);
+        
+        if (code == LV_EVENT_PRESSED || code == LV_EVENT_PRESSING) {
+            lv_indev_t *indev = lv_indev_get_act();
+            lv_point_t point;
+            lv_indev_get_point(indev, &point);
+            
+            lv_label_set_text_fmt(coord, "X: %d, Y: %d", point.x, point.y);
+            
+            if (code == LV_EVENT_PRESSED) {
+                LOG_INF("Touch: X=%d, Y=%d", point.x, point.y);
+            }
+        }
+    }, LV_EVENT_ALL, coord_label);
+    
+    LOG_INF("Simple touch test created");
 }
 
 #define ACCOUNT_SEND_CMD(ACT, CMD) \
@@ -77,6 +163,30 @@ do{ \
     DataProc::Center()->AccountMain.Notify(#ACT, &info, sizeof(info)); \
 }while(0)
 
+void test_raw_touch_events(void)
+{
+    // 获取 LVGL 的触摸输入设备
+    lv_indev_t *indev = lv_indev_get_next(NULL);
+    while (indev) {
+        if (lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER) {
+            LOG_INF("Found pointer device");
+            
+            // 触发读取（新版本只需一个参数）
+            lv_indev_read(indev);
+            
+            // 通过 getter 函数获取触摸数据
+            lv_indev_state_t state = lv_indev_get_state(indev);
+            lv_point_t point;
+            lv_indev_get_point(indev, &point);
+            
+            LOG_INF("Touch state: (%d, %d) %s", 
+                    point.x, 
+                    point.y,
+                    state == LV_INDEV_STATE_PRESSED ? "PRESSED" : "RELEASED");
+        }
+        indev = lv_indev_get_next(indev);
+    }
+}
 
 
 
@@ -94,8 +204,8 @@ void gui_init() {
 	LOG_INF("Display device %s is ready", display_dev->name);
 
     DataProc_Init();
-    // ACCOUNT_SEND_CMD(Storage, STORAGE_CMD_LOAD);
-    // ACCOUNT_SEND_CMD(SysConfig, SYSCONFIG_CMD_LOAD);
+    // // ACCOUNT_SEND_CMD(Storage, STORAGE_CMD_LOAD);
+    // // ACCOUNT_SEND_CMD(SysConfig, SYSCONFIG_CMD_LOAD);
 
     lv_port_indev_init();
 
@@ -148,6 +258,11 @@ int main(void)
     HAL::HAL_Init();
 
     gui_init();
+    // create_touch_test_screen();
+    // while(1){
+    //   lv_timer_handler();
+    //     k_msleep(10);  
+    // }
     return 0;
 }
 
@@ -165,6 +280,7 @@ static void data_update(void)
     static uint32_t encoder_update_cnt = 0;
     static uint32_t power_update_cnt = 0;
     static uint32_t gps_status_update_cnt = 0;
+    static uint32_t touch_update = 0;
     while (1) {
         HAL::GPS_Update();
 
@@ -177,6 +293,12 @@ static void data_update(void)
             power_update_cnt = 0;
             HAL::Power_Update();
         }
+
+        if(++touch_update>=500){
+            touch_update = 0;
+            //test_raw_touch_events();
+        }
+        
 
         if(++gps_status_update_cnt >= 5000){
             gps_status_update_cnt = 0;

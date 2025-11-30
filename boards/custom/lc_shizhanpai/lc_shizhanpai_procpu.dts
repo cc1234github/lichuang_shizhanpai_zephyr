@@ -90,9 +90,6 @@
 	lvgl_pointer {
 		input = <&ft6336_touch>;
 		compatible = "zephyr,lvgl-pointer-input";
-		swap-xy;
-		invert-x;
-		invert-y;
 	};
 
 };
