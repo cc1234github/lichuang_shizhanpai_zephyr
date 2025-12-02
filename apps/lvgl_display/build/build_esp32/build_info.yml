@@ -1,0 +1,61 @@
+cmake:
+  application:
+    configuration-dir: '/home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display'
+    source-dir: '/home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display'
+  board:
+    name: 'lc_shizhanpai'
+    path:
+     - '/home/c/workspace/lc_shizhanpai_zephyr/boards/espressif/lc_shizhanpai'
+    qualifiers: 'esp32s3/procpu'
+    revision: ''
+  devicetree:
+    bindings-dirs:
+     - '/opt/toolchains/zephyr/dts/bindings'
+    files:
+     - '/home/c/workspace/lc_shizhanpai_zephyr/boards/espressif/lc_shizhanpai/lc_shizhanpai_procpu.dts'
+     - '/home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display/app.overlay'
+    include-dirs:
+     - '/opt/toolchains/modules/hal/ambiq/dts'
+     - '/opt/toolchains/modules/hal/atmel/include'
+     - '/opt/toolchains/modules/hal/bouffalolab/include'
+     - '/opt/toolchains/modules/hal/bouffalolab/include/zephyr'
+     - '/opt/toolchains/modules/hal/gigadevice/include'
+     - '/opt/toolchains/modules/hal/microchip/include'
+     - '/opt/toolchains/modules/hal/microchip/dts'
+     - '/opt/toolchains/modules/hal/nuvoton/dts'
+     - '/opt/toolchains/modules/hal/nxp/dts'
+     - '/opt/toolchains/modules/hal/stm32/dts'
+     - '/opt/toolchains/modules/hal/ti/dts'
+     - '/opt/toolchains/zephyr/include'
+     - '/opt/toolchains/zephyr/include/zephyr'
+     - '/opt/toolchains/zephyr/dts/common'
+     - '/opt/toolchains/zephyr/dts/vendor'
+     - '/opt/toolchains/zephyr/dts/rx'
+     - '/opt/toolchains/zephyr/dts/x86'
+     - '/opt/toolchains/zephyr/dts/xtensa'
+     - '/opt/toolchains/zephyr/dts/sparc'
+     - '/opt/toolchains/zephyr/dts/riscv'
+     - '/opt/toolchains/zephyr/dts/posix'
+     - '/opt/toolchains/zephyr/dts/arm64'
+     - '/opt/toolchains/zephyr/dts/arm'
+     - '/opt/toolchains/zephyr/dts/arc'
+     - '/opt/toolchains/zephyr/dts'
+    user-files:
+     - '/home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display/app.overlay'
+  kconfig:
+    files:
+     - '/home/c/workspace/lc_shizhanpai_zephyr/boards/espressif/lc_shizhanpai/lc_shizhanpai_procpu_defconfig'
+     - '/home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display/prj.conf'
+    user-files:
+     - '/home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display/prj.conf'
+  toolchain:
+    name: 'zephyr'
+    path: '/opt/toolchains/zephyr-sdk-0.17.4'
+  zephyr:
+    version: '4.2.99'
+    zephyr-base: '/opt/toolchains/zephyr'
+version: '0.1.0'
+west:
+  command: '/opt/venv/bin/west build -p always -b lc_shizhanpai/esp32s3/procpu -d build/build_esp32 .'
+  topdir: '/opt/toolchains'
+  version: '1.4.0'

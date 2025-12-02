@@ -1,0 +1,5 @@
+west:
+  command: /opt/venv/bin/west build -p always -b lc_shizhanpai/esp32s3/procpu -d build/build_esp32
+    .
+  topdir: /opt/toolchains
+  version: 1.4.0

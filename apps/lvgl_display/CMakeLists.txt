@@ -16,8 +16,6 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(lvgl_display)
 
-add_subdirectory(X_Track)
-
 target_sources(app PRIVATE 
-        src/main.cpp)                  
+        src/main.c)                  
 

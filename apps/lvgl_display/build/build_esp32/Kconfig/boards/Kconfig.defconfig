@@ -1,0 +1,2 @@
+# Load Zephyr board defconfig descriptions.
+osource "/home/c/workspace/lc_shizhanpai_zephyr/boards/espressif/lc_shizhanpai/Kconfig.defconfig"
