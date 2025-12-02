@@ -52,5 +52,27 @@ int main(void)
         k_msleep(1);
     }
 }
-// west build -p always -b lc_shizhanpai/esp32s3/procpu apps/btn_uart
-// west build -p always -b lc_shizhanpai/esp32s3/procpu   samples/hello_world   -DBOARD_ROOT=/home/c/workspace/lichuang_shizhanpai_zephyr
+
+
+/**************************************************************************
+ * \brief 
+
+1. 进入工作目录
+cd /home/c/workspace/lc_shizhanpai_zephyr/apps/btn_uart
+
+2. 初次构建
+west build -p always -b lc_shizhanpai/esp32s3/procpu -d build .
+
+3. 再次编译
+west build -b lc_shizhanpai/esp32s3/procpu -d build .
+
+4. 烧录
+west flash -d build
+
+6. 工具
+west espressif monitor
+west build -t menuconfig
+west build -t guiconfig
+
+west build -t initlevels
+**************************************************************************/

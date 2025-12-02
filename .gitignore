@@ -8,6 +8,8 @@
 
 # build
 /build*
+/apps/btn_uart/build*
+/apps/lvgl_display/build*
 /twister-out*
 
 __pycache__/

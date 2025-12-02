@@ -102,13 +102,13 @@ int main(void)
 cd /home/c/workspace/lc_shizhanpai_zephyr/apps/lvgl_display
 
 2. 初次构建
-west build -p always -b lc_shizhanpai/esp32s3/procpu -d build/build_esp32 .
+west build -p always -b lc_shizhanpai/esp32s3/procpu -d build .
 
 3. 再次编译
-west build -b lc_shizhanpai/esp32s3/procpu -d build/build_esp32 .
+west build -b lc_shizhanpai/esp32s3/procpu -d build .
 
 4. 烧录
-west flash -d build/build_esp32
+west flash -d build
 
 6. 工具
 west espressif monitor
