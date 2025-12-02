@@ -1,2 +1,0 @@
-# Load Sysbuild board Kconfig descriptions.
-osource "/home/c/workspace/lc_shizhanpai_zephyr/boards/espressif/lc_shizhanpai/Kconfig.sysbuild"
